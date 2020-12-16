@@ -89,7 +89,6 @@ public class AutoKickPlugin extends Plugin {
 
             final String[] stringStack = client.getStringStack();
             final int stringSize = client.getStringStackSize();
-            final String kickPlayerName = stringStack[stringSize - 1];
 
             //This *WILL NOT WORK* without modification to the file FriendsChatSendKick.rs2asm
             if(suppressingNextKick)
