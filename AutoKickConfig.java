@@ -17,13 +17,13 @@ public interface AutoKickConfig extends Config
     )
     default String blacklist() { return ""; }
 
-    /*@ConfigItem( //Currently disabled due to RuneLite removing the ability to edit the kick string.
+    @ConfigItem( //Currently reenabled, but requires modification of FriendsChatSendKick.rs2asm
             keyName = "suppressBlacklistKick",
             name = "Suppress Blacklist Kick Messages",
             description = "Suppress the kick messages for users who you kicked via the blacklist function.",
             position = 2
     )
-    default boolean suppressBlacklistKick() { return false; }*/
+    default boolean suppressBlacklistKick() { return false; }
 
     @ConfigItem(
             keyName = "messageColor",
