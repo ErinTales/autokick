@@ -5,6 +5,7 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.ScriptID;
 import net.runelite.api.events.FriendsChatMemberJoined;
+import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -31,6 +32,9 @@ public class AutoKickPlugin extends Plugin {
 
     private List<String> blacklistedNames;
 
+    private boolean suppressKickMessage = false;
+    private boolean suppressingNextKick = false;
+
 
     @Provides //I always forget this...
     AutoKickConfig provideConfig(ConfigManager configManager)
@@ -42,12 +46,15 @@ public class AutoKickPlugin extends Plugin {
     protected void startUp()
     {
         blacklistedNames = Text.fromCSV(config.blacklist().toLowerCase());
+        suppressKickMessage = config.suppressBlacklistKick();
     }
 
     @Subscribe
     public void onConfigChanged(ConfigChanged configChanged)
     {
-        blacklistedNames = Text.fromCSV(config.blacklist().toLowerCase()); //Might be redundant, idc.
+        //Both of these may be redundant.
+        blacklistedNames = Text.fromCSV(config.blacklist().toLowerCase());
+        suppressKickMessage = config.suppressBlacklistKick();
     }
 
     @Subscribe
@@ -58,8 +65,12 @@ public class AutoKickPlugin extends Plugin {
             //Delete.
             String nameBlacklist = Text.standardize(event.getMember().getName());
             client.addChatMessage(ChatMessageType.ENGINE, "",
-                    getColorTag(config.messageColor()) + "Attempting to kick " + nameBlacklist + "...", "");
+                    getColorTag(config.messageColor()) + "Attempting to kick " + nameBlacklist + " from friends chat...", "");
 
+            if(suppressKickMessage)
+            {
+                suppressingNextKick = true;
+            }
             client.runScript(ScriptID.FRIENDS_CHAT_SEND_KICK, nameBlacklist);
         }
     }
@@ -68,5 +79,26 @@ public class AutoKickPlugin extends Plugin {
     {
         String hex = String.format("%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
         return "<col=" + hex + ">";
+    }
+
+    @Subscribe
+    public void onScriptCallbackEvent(ScriptCallbackEvent scriptCallbackEvent)
+    {
+        if(scriptCallbackEvent.getEventName().equals("sendKickName"))
+        {
+
+            final String[] stringStack = client.getStringStack();
+            final int stringSize = client.getStringStackSize();
+            final String kickPlayerName = stringStack[stringSize - 1];
+
+            //This *WILL NOT WORK* without modification to the file FriendsChatSendKick.rs2asm
+            if(suppressingNextKick)
+            {
+                //Deletes the message entirely so it won't be displayed.
+                stringStack[stringSize - 2] = "";
+            }
+
+            suppressingNextKick = false;
+        }
     }
 }
