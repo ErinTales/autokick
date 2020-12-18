@@ -18,18 +18,26 @@ public interface AutoKickConfig extends Config
     default String blacklist() { return ""; }
 
     @ConfigItem( //Currently reenabled, but requires modification of FriendsChatSendKick.rs2asm
-            keyName = "suppressBlacklistKick",
-            name = "Suppress Blacklist Kick Messages",
-            description = "Suppress the kick messages for users who you kicked via the blacklist function.",
+            keyName = "suppressKick",
+            name = "Suppress Kick Messages",
+            description = "Suppress the kick messages for users who you kicked via this plugin.",
             position = 2
     )
-    default boolean suppressBlacklistKick() { return false; }
+    default boolean suppressKick() { return false; }
+
+    @ConfigItem(
+            keyName = "kickCommand",
+            name = "Enable kick command",
+            description = "Enables the ::kick [username] command",
+            position = 3
+    )
+    default boolean kickCommand() { return false; }
 
     @ConfigItem(
             keyName = "messageColor",
             name = "Warning Message Color",
             description = "Color for the message that displays who you kicked.",
-            position = 2
+            position = 4
     )
     default Color messageColor() { return Color.MAGENTA; }
 
