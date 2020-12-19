@@ -37,6 +37,8 @@ public class AutoKickPlugin extends Plugin {
 
     private List<String> blacklistedNames;
 
+    private boolean suppressKick = false;
+
     @Provides //I always forget this...
     AutoKickConfig provideConfig(ConfigManager configManager)
     {
@@ -66,6 +68,7 @@ public class AutoKickPlugin extends Plugin {
             client.addChatMessage(ChatMessageType.ENGINE, "",
                     getColorTag(config.messageColor()) + "Attempting to kick " + nameBlacklist + " from friends chat...", "");
 
+            suppressKick = true;
             client.runScript(ScriptID.FRIENDS_CHAT_SEND_KICK, nameBlacklist);
         }
     }
@@ -79,7 +82,7 @@ public class AutoKickPlugin extends Plugin {
     @Subscribe
     public void onScriptCallbackEvent(ScriptCallbackEvent scriptCallbackEvent)
     {
-        if(scriptCallbackEvent.getEventName().equals("sendKickName") && config.suppressKick())
+        if(scriptCallbackEvent.getEventName().equals("sendKickName") && config.suppressKick() && suppressKick)
         {
             //This *WILL NOT WORK* without modification to the file FriendsChatSendKick.rs2asm
             final String[] stringStack = client.getStringStack();
@@ -87,6 +90,8 @@ public class AutoKickPlugin extends Plugin {
 
             //Deletes the message entirely so it won't be displayed.
             stringStack[stringSize - 2] = "";
+
+            suppressKick = false;
         }
     }
 
@@ -113,6 +118,8 @@ public class AutoKickPlugin extends Plugin {
                 getColorTag(config.messageColor()) + "Attempting to kick " + name + " from friends chat...", "");
 
         StringBuilder finalName = name;
+        suppressKick = true;
+
         clientThread.invokeLater(() -> client.runScript(ScriptID.FRIENDS_CHAT_SEND_KICK, finalName.toString()));
     }
 }
